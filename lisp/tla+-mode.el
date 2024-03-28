@@ -164,6 +164,10 @@ Configuration:
   ;; Teach Emacs what TLA+'s comments use as delimiters
   (tla+-mode-comment-setup)
 
+  ;; Electric
+  (setq-local electric-indent-chars
+              (append "{}()<>" electric-indent-chars))
+
 
 
 ;;;###autoload
