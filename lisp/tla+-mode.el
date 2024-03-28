@@ -174,5 +174,13 @@ Configuration:
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.tla" . tla+-mode))
 
+;;;
+;;; Top-bar menu for TLA+-mode
+(easy-menu-define tla+-mode-menu (list tla+-mode-map)
+  "Menu for `tla+-mode'."
+  '("TLA+"
+    ["Do something (PLACEHOLDER)" (lambda () ())
+     :help "Do something (PLACEHOLDER)"]))
+
 (provide 'tla+-mode)
 ;;; tla+-mode.el ends here
