@@ -43,6 +43,7 @@
 
 ;;; Code:
 
+(require 'treesit)
 (eval-when-compile (require 'rx))
 
 (defgroup tla+ nil
@@ -122,10 +123,133 @@ Set up:
   (setq-local paragraph-separate paragraph-start)
   (setq-local fill-paragraph-function #'tla+-mode--fill-paragraph))
 
+(defvar treesit-load-name-override-list)
+
 (defun tla+-mode--set-modeline ()
   "Set Emacs modeline with this major-mode's name."
   (setq mode-name "TLA+")
   (force-mode-line-update))
+
+(defun tla+-mode--font-lock-settings ()
+  "Tree-sitter font-lock settings."
+  (treesit-font-lock-rules
+   ;; FIXME: This is taken directly from c-ts-mode! This needs to be customized
+   ;; to the concrete parse tree that tree-sitter returns!
+   :language 'tlaplus
+   :feature 'comment
+   `((comment) @font-lock-comment-face
+     (comment) @contextual)
+
+   :language 'tlaplus
+   :feature 'constant
+   `((true) @font-lock-constant-face
+     (false) @font-lock-constant-face
+     (null) @font-lock-constant-face)
+
+   :language 'tlaplus
+   :feature 'keyword
+   `([,@(c-ts-mode--keywords mode)] @font-lock-keyword-face)
+
+   :language 'tlaplus
+   :feature 'operator
+   `([,@c-ts-mode--operators] @font-lock-operator-face
+     "!" @font-lock-negation-char-face)
+
+   :language 'tlaplus
+   :feature 'string
+   `((string_literal) @font-lock-string-face
+     (system_lib_string) @font-lock-string-face)
+
+   :language 'tlaplus
+   :feature 'literal
+   `((number_literal) @font-lock-number-face
+     (char_literal) @font-lock-constant-face)
+
+   :language 'tlaplus
+   :feature 'type
+   `((primitive_type) @font-lock-type-face
+     (type_identifier) @font-lock-type-face
+     (sized_type_specifier) @font-lock-type-face
+     [,@c-ts-mode--type-keywords] @font-lock-type-face)
+
+   :language 'tlaplus
+   :feature 'definition
+   ;; Highlights identifiers in declarations.
+   `((declaration
+      declarator: (_) @c-ts-mode--fontify-declarator)
+
+     (field_declaration
+      declarator: (_) @c-ts-mode--fontify-declarator)
+
+     (function_definition
+      declarator: (_) @c-ts-mode--fontify-declarator)
+
+     (parameter_declaration
+      declarator: (_) @c-ts-mode--fontify-declarator)
+
+     (enumerator
+      name: (identifier) @font-lock-property-name-face))
+
+   :language 'tlaplus
+   :feature 'assignment
+   ;; TODO: Recursively highlight identifiers in parenthesized
+   ;; expressions, see `c-ts-mode--fontify-declarator' for
+   ;; inspiration.
+   '((assignment_expression
+      left: (identifier) @font-lock-variable-name-face)
+     (assignment_expression
+      left: (field_expression field: (_) @font-lock-property-use-face))
+     (assignment_expression
+      left: (pointer_expression
+             (identifier) @font-lock-variable-name-face))
+     (assignment_expression
+      left: (subscript_expression
+             (identifier) @font-lock-variable-name-face))
+     (init_declarator declarator: (_) @c-ts-mode--fontify-declarator))
+
+   :language 'tlaplus
+   :feature 'function
+   '((call_expression
+      function:
+      [(identifier) @font-lock-function-call-face
+       (field_expression field: (field_identifier) @font-lock-function-call-face)]))
+
+   :language 'tlaplus
+   :feature 'variable
+   '((identifier) @c-ts-mode--fontify-variable)
+
+   :language 'tlaplus
+   :feature 'error
+   '((ERROR) @c-ts-mode--fontify-error)
+
+   :feature 'escape-sequence
+   :language 'tlaplus
+   :override t
+   '((escape_sequence) @font-lock-escape-face)
+
+   :language 'tlaplus
+   :feature 'property
+   '((field_identifier) @font-lock-property-use-face)
+
+   :language 'tlaplus
+   :feature 'bracket
+   '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
+
+   :language 'tlaplus
+   :feature 'delimiter
+   '((["," ":" ";"]) @font-lock-delimiter-face)
+
+   :language 'tlaplus
+   :feature 'emacs-devel
+   :override t
+   `(((call_expression
+       (call_expression function: (identifier) @fn)
+       @c-ts-mode--fontify-DEFUN)
+      (:match "\\`DEFUN\\'" @fn))
+
+     ((function_definition type: (_) @for-each-tail)
+      @c-ts-mode--fontify-for-each-tail
+      (:match ,c-ts-mode--for-each-tail-regexp @for-each-tail)))))
 
 ;;;###autoload
 (define-derived-mode tla+-mode prog-mode "TLA+"
@@ -167,6 +291,22 @@ Configuration:
   ;; Electric
   (setq-local electric-indent-chars
               (append "{}()<>" electric-indent-chars))
+
+  ;; Configuration that is only possible if tree-sitter is present and ready
+  ;; for TLA+ code.
+  (when (treesit-ready-p 'tlaplus)
+    (treesit-parser-create 'tlaplus)
+
+    ;; Font-locking (Syntax Highlighting)
+    (setq-local treesit-font-lock-feature-list
+                '((comment definition)
+                  (keyword preprocessor string type)
+                  (assignment constant escape-sequence label literal)
+                  (bracket delimiter error function operator property variable)))
+    (setq-local treesit-font-lock-settings (tla+-mode--font-lock-settings))
+
+    ;; Finally, set up Emacs' treesit manager & tree-sitter for use.
+    (treesit-major-mode-setup))
 
   ;; Indentation should use spaces not tabs
   (setq-local indent-tabs-mode 'nil))
