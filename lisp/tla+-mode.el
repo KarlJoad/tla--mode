@@ -59,7 +59,31 @@
   "Major mode for TLA+ specifications, powered by tree-sitter.
 
 Key bindings:
-\\{tla+-mode-map}"
+\\{tla+-mode-map}
+
+Configuration:
+	   You must at least set the variable to the TLA2 Toolbox.  This
+	   can be done by setting the variable in the Emacs configuration
+	   file (i.e. ~/.emacs or ~/.emacs.d/init.el)
+	      (setq tla+-tlatools-path </path/to/tla2tools.jar>)
+	   or with:
+	      \\[execute-extended-command] \"customize-group\" <RET> tla+
+
+	   You may also set the following paths:
+	      tla+-java-path
+	      tla+-dvipdf-path
+	      tla+-dvips-path
+	      tla+-tla+-tlatex-arguments
+	   TLC options can be set globally or in the TLC configuration
+	   GUI dialogue:
+	      tla+-tlc-deadlock
+	      tla+-tlc-simulate
+	      tla+-tlc-depth
+	      tla+-tlc-coverage
+	      tla+-tlc-workers
+	   To get help on one of the variables:
+	      \\[describe-variable] <variablename>
+	      \\[execute-extended-command] describe-variable <variablename>"
   :group 'tla+
 
   ;; Comments
