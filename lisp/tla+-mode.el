@@ -43,6 +43,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'rx))
+
 (defgroup tla+ nil
   "Support for the TLA+ model specification language."
   :tag "TLA+"
@@ -53,6 +55,72 @@
   :link '(url-link "https://github.com/KarlJoad/tla+-mode")
   :link '(emacs-commentary-link :tag "Commentary" "tla+-mode.el")
   :link '(emacs-library-link :tag "Lisp File" "tla+-mode.el"))
+
+(defun tla+-mode-comment-setup ()
+  "Set up local variables for TLA+ comments.
+
+Set up:
+ - `comment-start'
+ - `comment-end'
+ - `comment-start-skip'
+ - `comment-end-skip'
+ - `adaptive-fill-mode'
+ - `adaptive-fill-first-line-regexp'
+ - `paragraph-start'
+ - `paragraph-separate'
+ - `fill-paragraph-function'"
+
+  ;; \* is a line-comment, (* *) is a block comment, which can cover multiple
+  ;; lines.
+  (setq-local comment-start "\\*")
+  (setq-local comment-end "")
+
+  (setq-local comment-start-skip (rx (or (seq "\\" (+ "*"))
+                                         (seq "(" (+ "*")))
+                                     (* (syntax whitespace))))
+  (setq-local comment-end-skip
+              (rx (* (syntax whitespace))
+                  (group (or (syntax comment-end)
+                             (seq (+ "*") ")")))))
+
+  (setq-local adaptive-fill-mode t)
+
+  ;; This matches (1) empty spaces (the default), (2) "\*", (3) "(*",
+  ;; but do not match "*)", because we don't want to use "*)" as
+  ;; prefix when filling.  (Actually, it doesn't matter, because
+  ;; `comment-start-skip' matches "(*" which will cause
+  ;; `fill-context-prefix' to use "(*" as a prefix for filling, that's
+  ;; why we mask the "(*" in `tla+-mode--fill-paragraph'.)
+  (setq-local adaptive-fill-regexp
+              (concat (rx (* (syntax whitespace))
+                          (group (seq (or "\\" "(") (+ "*") (* "*"))))
+                      adaptive-fill-regexp))
+  ;; Note the missing * comparing to `adaptive-fill-regexp'.  The
+  ;; reason for its absence is a bit convoluted to explain.  Suffice
+  ;; to say that without it, filling a single line paragraph that
+  ;; starts with /* doesn't insert * at the beginning of each
+  ;; following line, and filling a multi-line paragraph whose first
+  ;; two lines start with * does insert * at the beginning of each
+  ;; following line.  If you know how does adaptive filling works, you
+  ;; know what I mean.
+  (setq-local adaptive-fill-first-line-regexp
+              (rx bos
+                  (seq (* (syntax whitespace))
+                       (group (seq "/" (+ "/")))
+                       (* (syntax whitespace)))
+                  eos))
+  ;; Same as `adaptive-fill-regexp'.
+  (setq-local paragraph-start
+              (rx (or (seq (* (syntax whitespace))
+                           (group (or (seq "/" (+ "/")) (* "*")))
+                           (* (syntax whitespace))
+                           ;; Add this eol so that in
+                           ;; `fill-context-prefix', `paragraph-start'
+                           ;; doesn't match the prefix.
+                           eol)
+                      "\f")))
+  (setq-local paragraph-separate paragraph-start)
+  (setq-local fill-paragraph-function #'tla+-mode--fill-paragraph))
 
 (defun tla+-mode--set-modeline ()
   "Set Emacs modeline with this major-mode's name."
@@ -92,10 +160,11 @@ Configuration:
   :group 'tla+
   :after-hook (tla+-mode--set-modeline)
 
-
   ;; Comments
-  (setq-local comment-start "//")
-  (setq-local comment-start-skip "//+[\[ ]*"))
+  ;; Teach Emacs what TLA+'s comments use as delimiters
+  (tla+-mode-comment-setup)
+
+
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.tla" . tla+-mode))
