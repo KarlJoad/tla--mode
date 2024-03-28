@@ -168,7 +168,8 @@ Configuration:
   (setq-local electric-indent-chars
               (append "{}()<>" electric-indent-chars))
 
-
+  ;; Indentation should use spaces not tabs
+  (setq-local indent-tabs-mode 'nil))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.tla" . tla+-mode))
