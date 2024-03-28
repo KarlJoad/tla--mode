@@ -43,12 +43,25 @@
 
 ;;; Code:
 
+(defgroup tla+ nil
+  "Support for the TLA+ model specification language."
+  :tag "TLA+"
+  :group 'languages
+  :version "29.1"
+  :link '(custom-manual "(tla+) Top")
+  :link '(info-link "(tla+) Customization")
+  :link '(url-link "https://github.com/KarlJoad/tla+-mode")
+  :link '(emacs-commentary-link :tag "Commentary" "tla+-mode.el")
+  :link '(emacs-library-link :tag "Lisp File" "tla+-mode.el"))
+
 ;;;###autoload
 (define-derived-mode tla+-mode prog-mode "TLA+"
   "Major mode for TLA+ specifications, powered by tree-sitter.
 
 Key bindings:
 \\{tla+-mode-map}"
+  :group 'tla+
+
   ;; Comments
   (setq-local comment-start "//")
   (setq-local comment-start-skip "//+[\[ ]*"))
