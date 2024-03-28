@@ -54,6 +54,11 @@
   :link '(emacs-commentary-link :tag "Commentary" "tla+-mode.el")
   :link '(emacs-library-link :tag "Lisp File" "tla+-mode.el"))
 
+(defun tla+-mode--set-modeline ()
+  "Set Emacs modeline with this major-mode's name."
+  (setq mode-name "TLA+")
+  (force-mode-line-update))
+
 ;;;###autoload
 (define-derived-mode tla+-mode prog-mode "TLA+"
   "Major mode for TLA+ specifications, powered by tree-sitter.
@@ -85,6 +90,8 @@ Configuration:
 	      \\[describe-variable] <variablename>
 	      \\[execute-extended-command] describe-variable <variablename>"
   :group 'tla+
+  :after-hook (tla+-mode--set-modeline)
+
 
   ;; Comments
   (setq-local comment-start "//")
