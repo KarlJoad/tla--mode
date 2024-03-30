@@ -123,6 +123,31 @@ Set up:
   (setq-local paragraph-separate paragraph-start)
   (setq-local fill-paragraph-function #'tla+-mode--fill-paragraph))
 
+(defvar tla+-mode--syntax-table
+  (let ((table (make-syntax-table)))
+    ;; Treat underscores as symbol constiuents
+    (modify-syntax-entry ?_ "_" table)
+
+    ;; TLA+ has 2 comment syntaxes, (* block *) and \* line.
+    ;; The 1 means that both the ( character and \ character are the first
+    ;; characters that start the two-character comment sequence.
+    ;; However, more heavily uses (* *), so that is marked as the "a" comment
+    ;; sequence style.
+    (modify-syntax-entry ?\( "()1" table)
+    ;; Treat the \ as punctuation so that it can be used as an operator/keyword
+    ;; but if * is found immediately after, the sequence \* is treated as a
+    ;; comment.
+    (modify-syntax-entry ?\\ ". 1b" table)
+    ;; The * needs to be treated as a punctuation character to not mess up
+    ;; highlighting of normal multiplication.
+    (modify-syntax-entry ?* ". 23" table)
+    (modify-syntax-entry ?\) ")(4" table)
+    ;; Return characters end the line-comment sequence.
+    (modify-syntax-entry ?\n "> b" table)
+    (modify-syntax-entry ?\m "> b" table)
+    table)
+  "Syntax table for `tla+-mode'.")
+
 (defvar treesit-load-name-override-list)
 
 (defun tla+-mode--set-modeline ()
@@ -282,6 +307,7 @@ Configuration:
 	      \\[describe-variable] <variablename>
 	      \\[execute-extended-command] describe-variable <variablename>"
   :group 'tla+
+  :syntax-table tla+-mode--syntax-table
   :after-hook (tla+-mode--set-modeline)
 
   ;; Comments
