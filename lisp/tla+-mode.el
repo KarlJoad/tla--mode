@@ -155,126 +155,324 @@ Set up:
   (setq mode-name "TLA+")
   (force-mode-line-update))
 
+(defvar tla-ts-mode--builtin
+  '((nat_number_set) (boolean_set) (int_number_set) (real_number_set) (string_set))
+  "List of sets built into TLA+.")
+
+(defvar tla-ts-mode--constant
+  '("TRUE" "FALSE")
+  "List of constant values in TLA+.")
+
+(defvar tla-ts-mode--numbers
+  '((nat_number) (real_number) (octal_number) (hex_number) (binary_number))
+  "TLA+'s tree-sitter's notion of numbers.")
+
+(defvar tla-ts-mode--delimiters
+  '((langle_bracket) (rangle_bracket) (rangle_bracket_sub) "{" "}" "[" "]" "]_" "(" ")")
+  "TLA+'s delimiters.")
+
+(defvar tla-ts-mode--misc-punctuation
+  '(
+    ","
+    ":"
+    "."
+    "!"
+    (bullet_conj)
+    (bullet_disj))
+  "TLA+'s punctuation.")
+
+(defvar tla-ts-mode--operators
+  '( (amp)
+     (ampamp)
+     (approx)
+     (assign)
+     (asymp)
+     (bigcirc)
+     (bnf_rule)
+     (bullet)
+     (cap)
+     (cdot)
+     (circ)
+     (compose)
+     (cong)
+     (cup)
+     (div)
+     (dol)
+     (doldol)
+     (doteq)
+     (dots_2)
+     (dots_3)
+     (eq)
+     (equiv)
+     (excl)
+     (geq)
+     (gg)
+     (gt)
+     (hashhash)
+     (iff)
+     (implies)
+     (in)
+     (land)
+     (ld_ttile)
+     (leads_to)
+     (leq)
+     (ll)
+     (lor)
+     (ls_ttile)
+     (lt)
+     (map_from)
+     (map_to)
+     (minus)
+     (minusminus)
+     (mod)
+     (modmod)
+     (mul)
+     (mulmul)
+     (neq)
+     (notin)
+     (odot)
+     (ominus)
+     (oplus)
+     (oslash)
+     (otimes)
+     (plus)
+     (plus_arrow)
+     (plusplus)
+     (pow)
+     (powpow)
+     (prec)
+     (preceq)
+     (propto)
+     (qq)
+     (rd_ttile)
+     (rs_ttile)
+     (setminus)
+     (sim)
+     (simeq)
+     (slash)
+     (slashslash)
+     (sqcap)
+     (sqcup)
+     (sqsubset)
+     (sqsubseteq)
+     (sqsupset)
+     (sqsupseteq)
+     (star)
+     (subset)
+     (subseteq)
+     (succ)
+     (succeq)
+     (supset)
+     (supseteq)
+     (times)
+     (uplus)
+     (vert)
+     (vertvert)
+     (wr)
+     ;; bound_prefix_op symbols
+     (always)
+     (domain)
+     (enabled)
+     (eventually)
+     (lnot)
+     (negative)
+     (powerset)
+     (unchanged)
+     (union)
+     ;; bound_postfix_op symbols
+     (asterisk)
+     (prime)
+     (sup_hash)
+     (sup_plus))
+  "TLA+ operators.")
+
+(defvar tla+-mode--keywords
+  '("ACTION"
+    "ASSUME"
+    "ASSUMPTION"
+    "AXIOM"
+    "BY"
+    "CASE"
+    "CHOOSE"
+    "CONSTANT"
+    "CONSTANTS"
+    "COROLLARY"
+    "DEF"
+    "DEFINE"
+    "DEFS"
+    "DOMAIN"
+    "ELSE"
+    "ENABLED"
+    "EXCEPT"
+    "EXTENDS"
+    "HAVE"
+    "HIDE"
+    "IF"
+    "IN"
+    "INSTANCE"
+    "LAMBDA"
+    "LEMMA"
+    "LET"
+    "LOCAL"
+    "MODULE"
+    "NEW"
+    "OBVIOUS"
+    "OMITTED"
+    "ONLY"
+    "OTHER"
+    "PICK"
+    "PROOF"
+    "PROPOSITION"
+    "PROVE"
+    "QED"
+    "RECURSIVE"
+    "SF_"
+    "STATE"
+    "SUBSET"
+    "SUFFICES"
+    "TAKE"
+    "TEMPORAL"
+    "THEN"
+    "THEOREM"
+    "UNCHANGED"
+    "UNION"
+    "USE"
+    "VARIABLE"
+    "VARIABLES"
+    "WF_"
+    "WITH"
+    "WITNESS"
+    (def_eq)
+    (set_in)
+    (gets)
+    (forall)
+    (exists)
+    (temporal_forall)
+    (temporal_exists)
+    (all_map_to)
+    (maps_to)
+    (case_box)
+    (case_arrow)
+    (address)
+    (label_as))
+  "TLA+ keywords.")
+
+(defvar tla+-mode-treesit-font-lock-feature-list
+  '((module module-boundary comment)
+    (builtin string numbers)
+    (keyword extend declaration definition identifier)
+    (operator delimiter misc-punctuation assume))
+  "Alist of symbols for features used in tree-sitter font-lock rules.")
+
 (defun tla+-mode--font-lock-settings ()
   "Tree-sitter font-lock settings."
   (treesit-font-lock-rules
-   ;; FIXME: This is taken directly from c-ts-mode! This needs to be customized
-   ;; to the concrete parse tree that tree-sitter returns!
    :language 'tlaplus
-   :feature 'comment
-   `((comment) @font-lock-comment-face
-     (comment) @contextual)
+   :override t
+   :feature 'module
+   `((module
+      (header_line) @font-lock-warning-face
+      name: (identifier) @font-lock-type-face
+      (header_line) @font-lock-warning-face)
+     )
 
    :language 'tlaplus
-   :feature 'constant
-   `((true) @font-lock-constant-face
-     (false) @font-lock-constant-face
-     (null) @font-lock-constant-face)
-
-   :language 'tlaplus
+   :override t
    :feature 'keyword
-   `([,@(c-ts-mode--keywords mode)] @font-lock-keyword-face)
+   `(([,@tla+-mode--keywords] @font-lock-keyword-face)
+     )
 
    :language 'tlaplus
-   :feature 'operator
-   `([,@c-ts-mode--operators] @font-lock-operator-face
-     "!" @font-lock-negation-char-face)
+   :override t
+   :feature 'builtin
+   `(([,@tla-ts-mode--builtin] @font-lock-builtin-face)
+     ([,@tla-ts-mode--constant] @font-lock-constant-face)
+     )
+
+   ;; Assumptions are marked in the warning face because they could be dangerous
+   ;; and must be checked for correctness. We _really_ want to call them out.
+   ;; NOTE: This highlights the ENTIRE assumption with the warning color!
+   :language 'tlaplus
+   :override t
+   :feature 'assume
+   `(((assumption "ASSUME" _) @font-lock-warning-face)
+     )
 
    :language 'tlaplus
-   :feature 'string
-   `((string_literal) @font-lock-string-face
-     (system_lib_string) @font-lock-string-face)
+   :override t
+   :feature 'extend
+   `(((extends "EXTENDS" _) @font-lock-preprocessor-face)
+     )
 
    :language 'tlaplus
-   :feature 'literal
-   `((number_literal) @font-lock-number-face
-     (char_literal) @font-lock-constant-face)
+   :override t
+   :feature 'declaration
+   `(
+     ;; FIXME: Highlights entire line, only highlight the constants!
+     ((constant_declaration "CONSTANTS" _) @font-lock-constant-face)
+     ((variable_declaration "VARIABLES" _) @font-lock-variable-name-face)
+     )
 
    :language 'tlaplus
-   :feature 'type
-   `((primitive_type) @font-lock-type-face
-     (type_identifier) @font-lock-type-face
-     (sized_type_specifier) @font-lock-type-face
-     [,@c-ts-mode--type-keywords] @font-lock-type-face)
-
-   :language 'tlaplus
+   :override t
    :feature 'definition
-   ;; Highlights identifiers in declarations.
-   `((declaration
-      declarator: (_) @c-ts-mode--fontify-declarator)
-
-     (field_declaration
-      declarator: (_) @c-ts-mode--fontify-declarator)
-
-     (function_definition
-      declarator: (_) @c-ts-mode--fontify-declarator)
-
-     (parameter_declaration
-      declarator: (_) @c-ts-mode--fontify-declarator)
-
-     (enumerator
-      name: (identifier) @font-lock-property-name-face))
+   `((operator_definition
+      name: (identifier) @font-lock-variable-name-face
+      ;; FIXME: Highlight parameters, if they are present!
+      )
+     ;; A quantifier_bound "defines" variables for a subsequent expression
+     (quantifier_bound (identifier) @font-lock-variable-name-face)
+     )
 
    :language 'tlaplus
-   :feature 'assignment
-   ;; TODO: Recursively highlight identifiers in parenthesized
-   ;; expressions, see `c-ts-mode--fontify-declarator' for
-   ;; inspiration.
-   '((assignment_expression
-      left: (identifier) @font-lock-variable-name-face)
-     (assignment_expression
-      left: (field_expression field: (_) @font-lock-property-use-face))
-     (assignment_expression
-      left: (pointer_expression
-             (identifier) @font-lock-variable-name-face))
-     (assignment_expression
-      left: (subscript_expression
-             (identifier) @font-lock-variable-name-face))
-     (init_declarator declarator: (_) @c-ts-mode--fontify-declarator))
+   :override 'keep
+   :feature 'identifier
+   `((identifier_ref) @font-lock-variable-use-face
+     )
 
-   :language 'tlaplus
-   :feature 'function
-   '((call_expression
-      function:
-      [(identifier) @font-lock-function-call-face
-       (field_expression field: (field_identifier) @font-lock-function-call-face)]))
-
-   :language 'tlaplus
-   :feature 'variable
-   '((identifier) @c-ts-mode--fontify-variable)
-
-   :language 'tlaplus
-   :feature 'error
-   '((ERROR) @c-ts-mode--fontify-error)
-
-   :feature 'escape-sequence
    :language 'tlaplus
    :override t
-   '((escape_sequence) @font-lock-escape-face)
+   :feature 'operator
+   `([,@tla-ts-mode--operators] @font-lock-operator-face
+     )
 
    :language 'tlaplus
-   :feature 'property
-   '((field_identifier) @font-lock-property-use-face)
-
-   :language 'tlaplus
-   :feature 'bracket
-   '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
-
-   :language 'tlaplus
+   :override t
    :feature 'delimiter
-   '((["," ":" ";"]) @font-lock-delimiter-face)
+   `([,@tla-ts-mode--delimiters ] @font-lock-bracket-face
+     )
 
    :language 'tlaplus
-   :feature 'emacs-devel
-   :override t
-   `(((call_expression
-       (call_expression function: (identifier) @fn)
-       @c-ts-mode--fontify-DEFUN)
-      (:match "\\`DEFUN\\'" @fn))
+   :feature 'misc-punctuation
+   `([,@tla-ts-mode--misc-punctuation] @font-lock-misc-punctuation-face
+     )
 
-     ((function_definition type: (_) @for-each-tail)
-      @c-ts-mode--fontify-for-each-tail
-      (:match ,c-ts-mode--for-each-tail-regexp @for-each-tail)))))
+   :language 'tlaplus
+   :override 'keep
+   :feature 'module-boundary
+   `((double_line) @font-lock-warning-face
+     )
+
+   :language 'tlaplus
+   :override 'keep
+   :feature 'string
+   `((string) @font-lock-string-face
+     )
+
+   :language 'tlaplus
+   :override t
+   :feature 'numbers
+   `([,@tla-ts-mode--numbers] @font-lock-number-face
+     )
+
+   :language 'tlaplus
+   :override 'keep
+   :feature 'comment
+   ;; FIXME: Block comments are still highlighting start "(" and end ")"
+   `(((block_comment) @font-lock-comment-face)
+     (comment) @font-lock-comment-face
+     (extramodular_text) @font-lock-comment-face
+     )))
 
 ;;;###autoload
 (define-derived-mode tla+-mode prog-mode "TLA+"
@@ -320,15 +518,19 @@ Configuration:
 
   ;; Configuration that is only possible if tree-sitter is present and ready
   ;; for TLA+ code.
+  ;; FIXME: We only support tree-sitter-based parsing, so if you do NOT have
+  ;; tree-sitter, we should really error and print a message.
   (when (treesit-ready-p 'tlaplus)
     (treesit-parser-create 'tlaplus)
 
     ;; Font-locking (Syntax Highlighting)
+    ;; (setq-local treesit-font-lock-feature-list
+    ;;             '((comment definition)
+    ;;               (keyword preprocessor string type)
+    ;;               (assignment constant escape-sequence label literal)
+    ;;               (bracket delimiter error function operator property variable)))
     (setq-local treesit-font-lock-feature-list
-                '((comment definition)
-                  (keyword preprocessor string type)
-                  (assignment constant escape-sequence label literal)
-                  (bracket delimiter error function operator property variable)))
+                tla+-mode-treesit-font-lock-feature-list)
     (setq-local treesit-font-lock-settings (tla+-mode--font-lock-settings))
 
     ;; Finally, set up Emacs' treesit manager & tree-sitter for use.
