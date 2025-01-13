@@ -144,7 +144,7 @@ Set up:
     (modify-syntax-entry ?\) ")(4" table)
     ;; Return characters end the line-comment sequence.
     (modify-syntax-entry ?\n "> b" table)
-    (modify-syntax-entry ?\m "> b" table)
+    (modify-syntax-entry ?\r "> b" table)
     table)
   "Syntax table for `tla+-mode'.")
 
