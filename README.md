@@ -1,7 +1,11 @@
 # Features
+TLA+ is known by programmers for having some strange syntax and that syntax can also be quite difficult to parse correctly.
+So we rely on tree-sitter to provide top-notch information about the TLA+ file.
+
 This major-mode for TLA+ has a combination of features from earlier versions made by others.
-  * [Tree-sitter](https://tree-sitter.github.io/tree-sitter/)
-  * Comint-supported REPL development
+  * [Tree-sitter](https://tree-sitter.github.io/tree-sitter/)-based font-locking and indentation.
+  * Comint-supported REPL development for interactive and iterative development of a specification.
+  * A configuration & dispatch interface for working with TLA+'s model checking and formal verification tools
 
 # Previous Versions
 There have been a variety of previous major-modes created for TLA+ in Emacs.
