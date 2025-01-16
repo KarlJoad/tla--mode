@@ -474,7 +474,6 @@ Set up:
    :language 'tlaplus
    :override 'keep
    :feature 'comment
-   ;; FIXME: Block comments are still highlighting start "(" and end ")"
    `(((block_comment) @font-lock-comment-face)
      (comment) @font-lock-comment-face
      (extramodular_text) @font-lock-comment-face
