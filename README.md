@@ -14,6 +14,22 @@ This major-mode for TLA+ has a combination of features from earlier versions mad
       There are known ABI compatibility problems between tree-sitter versions.
       The primary author uses [Guix](https://guix.gnu.org/) as their primary operating system and package manager, and the versions of the tree-sitter packages currently in their repository is known to work.
 
+# Installing
+Installing TLA+-mode for font-locking and indentation is straightforward.
+If you want to use TLA+-mode's programming and verification tools, you must install TLA+ on your machine.
+
+## Straight.el
+
+## elpaca
+The developer uses [elpaca](https://github.com/progfolio/elpaca) as their package management system for Emacs.
+
+```elisp
+(use-package tlaplus-mode
+  :ensure (:host github
+           :repo "Karljoad/tlaplus-mode"
+           :main "lisp/tla+-mode.el"))
+```
+
 # Previous Versions
 There have been a variety of previous major-modes created for TLA+ in Emacs.
 But, none of them seemed maintained and did not have all the features I wanted.
