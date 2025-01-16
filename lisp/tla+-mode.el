@@ -487,9 +487,9 @@ Key bindings:
 \\{tla+-mode-map}
 
 Configuration:
-	   You must at least set the variable to the TLA2 Toolbox.  This
-	   can be done by setting the variable in the Emacs configuration
-	   file (i.e. ~/.emacs or ~/.emacs.d/init.el)
+	   You must at least set the variable to the TLA2 Toolbox,
+     `tla+-tlatools-path'.  This can be done by setting the variable in the
+     Emacs configuration file (i.e. ~/.emacs or ~/.emacs.d/init.el)
 	      (setq tla+-tlatools-path </path/to/tla2tools.jar>)
 	   or with:
 	      \\[execute-extended-command] \"customize-group\" <RET> tla+
