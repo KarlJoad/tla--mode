@@ -165,7 +165,7 @@ Set up:
 
 (defvar tla-ts-mode--numbers
   '((nat_number) (real_number) (octal_number) (hex_number) (binary_number))
-  "TLA+'s tree-sitter's notion of numbers.")
+  "TLA+'s tree-sitter's notion of individual numbers.")
 
 (defvar tla-ts-mode--delimiters
   '((langle_bracket) (rangle_bracket) (rangle_bracket_sub) "{" "}" "[" "]" "]_" "(" ")")
