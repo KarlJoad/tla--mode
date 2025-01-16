@@ -155,9 +155,9 @@ Set up:
   (setq mode-name "TLA+")
   (force-mode-line-update))
 
-(defvar tla-ts-mode--builtin
+(defvar tla-ts-mode--constant-sets
   '((nat_number_set) (boolean_set) (int_number_set) (real_number_set) (string_set))
-  "List of sets built into TLA+.")
+  "List of pre-defined number/value sets built into TLA+.")
 
 (defvar tla-ts-mode--constant
   '("TRUE" "FALSE")
@@ -385,7 +385,7 @@ Set up:
    :language 'tlaplus
    :override t
    :feature 'builtin
-   `(([,@tla-ts-mode--builtin] @font-lock-builtin-face)
+   `(([,@tla-ts-mode--constant-sets] @font-lock-builtin-face)
      ([,@tla-ts-mode--constant] @font-lock-constant-face)
      )
 
