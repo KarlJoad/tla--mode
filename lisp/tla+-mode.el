@@ -367,6 +367,10 @@ Set up:
 (defun tla+-mode--font-lock-settings ()
   "Tree-sitter font-lock settings."
   (treesit-font-lock-rules
+   ;; The start of a module has a very particular format. Font-lock the header's
+   ;; lines with the warning face (typically a yellow), then use some more
+   ;; normal colors for the MODULE and module's name in the header.
+   ;; Format: <4 or more hyphens> MODULE <module-name> <4 or more hyphens>
    :language 'tlaplus
    :override t
    :feature 'module
@@ -374,6 +378,14 @@ Set up:
       (header_line) @font-lock-warning-face
       name: (identifier) @font-lock-type-face
       (header_line) @font-lock-warning-face)
+     )
+
+   ;; Highlight the end of a TLA+ module with the same color as the start.
+   ;; Format: 4 or more equals signs in a row.
+   :language 'tlaplus
+   :override 'keep
+   :feature 'module-boundary
+   `((double_line) @font-lock-warning-face
      )
 
    :language 'tlaplus
@@ -445,12 +457,6 @@ Set up:
    :language 'tlaplus
    :feature 'misc-punctuation
    `([,@tla-ts-mode--misc-punctuation] @font-lock-misc-punctuation-face
-     )
-
-   :language 'tlaplus
-   :override 'keep
-   :feature 'module-boundary
-   `((double_line) @font-lock-warning-face
      )
 
    :language 'tlaplus
